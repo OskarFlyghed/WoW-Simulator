@@ -1,7 +1,7 @@
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
-public class Attacks {
+public class Rogue {
     public class Colors {
     public static final String RESET = "\u001B[0m";
     public static final String RED = "\u001B[31m";
@@ -66,7 +66,7 @@ public class Attacks {
 
     private Map<String, SpecialAttacks> specials = new HashMap<>();
 
-    public Attacks() {
+    public Rogue() {
         specials.put("1", new SpecialAttacks("Saber Slash",-40, 80, 120, 20, 1));
         specials.put("2", new SpecialAttacks("Throw Knife",+40, 40, 80, 40, 6));
         specials.put("3", new SpecialAttacks("Evicerate",-60, 150, 250, 20,10));
@@ -88,7 +88,7 @@ public class Attacks {
             enemy.takeDamage(dmg);
             totalDamage += dmg;
             lastAutoAttack = now;
-            System.out.println(Colors.GREEN + "Auto does " + dmg + " damage" + Colors.RESET);
+            System.out.println(Colors.GREEN + "                               Auto does " + dmg + " damage" + Colors.RESET);
         if (hasteOneActive && now >= hasteOneEndTime){
             hasteOneActive = false;
             System.out.println(Colors.YELLOW + "Slice and Dice have worn off!" + Colors.RESET);
