@@ -19,6 +19,8 @@ public class Mage implements CharacterClass {
     private boolean trinketActive = false;
     private long trinketEndTime = 0;
     private int spellPower = 300;
+    private int totalMana = 3000; //TOTAL MANA ON MAGE
+
     public int getTotalDamage(){
         return totalDamage;
     }
@@ -31,7 +33,7 @@ public class Mage implements CharacterClass {
     boolean crit = rand.nextInt(100) < critChance; // critChance i %
 
     if (crit) {
-        System.out.println("CRIT!");
+        System.out.println(Colors.RED + "CRIT!" + Colors.RESET);
         dmg *= 2;
     }
     return dmg;
@@ -39,7 +41,7 @@ public class Mage implements CharacterClass {
 
     public static class SpecialAttacks {
         String name;
-        int mana = 100;
+        int manaCost;
         int castTime;
         int minDamage;
         int maxDamage;
@@ -47,9 +49,9 @@ public class Mage implements CharacterClass {
         int cooldown;
         long lastUsed;
 
-        SpecialAttacks(String name, int mana, int castTime, int minDamage, int maxDamage, int critChance, int cooldown) {
+        SpecialAttacks(String name, int manaCost, int castTime, int minDamage, int maxDamage, int critChance, int cooldown) {
             this.name = name;
-            this.mana = mana;
+            this.manaCost = manaCost;
             this.castTime = castTime;
             this.minDamage = minDamage;
             this.maxDamage = maxDamage;
@@ -69,21 +71,27 @@ public class Mage implements CharacterClass {
         private Map<String, SpecialAttacks> specials = new HashMap<>();
 
         public Mage() {
-        specials.put("1", new SpecialAttacks("Fire Ball",-100, 2, 399, 654, 20, 0));
-        specials.put("2", new SpecialAttacks("Fire Blast!",+40, 0, 137, 159, 100, 6));
-        specials.put("3", new SpecialAttacks("Pyro Blast!",-299, 5, 875, 1139, 20,0));
-        specials.put("4", new SpecialAttacks("Evocation",+100, 3, 0, 0, 0, 20));
-        specials.put("5", new SpecialAttacks("Combustion",+100, 0, 0, 0, 100, 60));
+        specials.put("1", new SpecialAttacks("Fire Ball",139, 2, 399, 654, 20, 0));
+        specials.put("2", new SpecialAttacks("Fire Blast!",50, 0, 137, 159, 100, 6));
+        specials.put("3", new SpecialAttacks("Pyro Blast!",399, 4, 875, 1139, 20,0));
+        specials.put("4", new SpecialAttacks("Evocation",+0, 3, 0, 0, 0, 20));
+        specials.put("5", new SpecialAttacks("Combustion",100, 0, 0, 0, 100, 60));
         specials.put("6", new SpecialAttacks("Mind Quickening Gem",0, 0, 0, 0, 0 ,120));
     }
     public void specialAttack(String key, Monster enemy) {
 
         SpecialAttacks atk = specials.get(key);
         if (atk == null) return;
+        
         //Fire Ball
         if(key.equals("1")){
             if (atk.canUse()){
+                if (totalMana < atk.manaCost) {
+                    System.out.println("Not enough mana!");
+                    return;
+                }
                 if (!showCastBar(atk, atk.castTime)) return;
+                totalMana -= atk.manaCost;
                 atk.use();
                 int dmg = getRandomDamage(atk.minDamage, atk.maxDamage, atk.critChance);
                 int merDamage = dmg + spellPower;
@@ -101,6 +109,11 @@ public class Mage implements CharacterClass {
         //Fire Blast
         if(key.equals("2")){
             if (atk.canUse()){
+                if (totalMana < atk.manaCost) {
+                    System.out.println("Not enough mana!");
+                    return;
+                }
+                totalMana -= atk.manaCost;
                 atk.use();
                 pyroHaste = true;
                 pyroHasteEndTime = System.currentTimeMillis() + 10000; //10 seconds
@@ -110,6 +123,7 @@ public class Mage implements CharacterClass {
                 enemy.takeDamage(dmg);
                 totalDamage += dmg;
                 System.out.println(atk.name + " does " + dmg + " damage");
+                System.out.println(Colors.YELLOW + "Pyro Blast empowered!" + Colors.RESET);
             } else {
                 long cdLeft = atk.cooldown - 
                         ((System.currentTimeMillis() - atk.lastUsed) / 1000);
@@ -120,10 +134,15 @@ public class Mage implements CharacterClass {
         //Pyro Blast
         if(key.equals("3")){
             if (atk.canUse()){
+                if (totalMana < atk.manaCost) {
+                    System.out.println("Not enough mana!");
+                    return;
+                }
                 boolean hasPyroHaste = pyroHaste
                         && System.currentTimeMillis() < pyroHasteEndTime;
                 int castTime = hasPyroHaste ? 1 : atk.castTime; //Cast time with Pyro haste
                 if (!showCastBar(atk, castTime)) return;
+                totalMana -= atk.manaCost;
                 atk.use();
                 if (hasPyroHaste) {
                     pyroHaste = false;
@@ -146,11 +165,10 @@ public class Mage implements CharacterClass {
             if (atk.canUse()){
                 if (!showCastBar(atk, atk.castTime)) return;
                 atk.use();
-                
-                int dmg = getRandomDamage(atk.minDamage, atk.maxDamage, atk.critChance);
-                enemy.takeDamage(dmg);
-                totalDamage += dmg;
-                System.out.println(atk.name + " does " + dmg + " damage");
+                int manaBefore = totalMana;
+                totalMana = Math.min(3000, totalMana + 3000); //3000 is amount restores
+                int manaRestored = totalMana - manaBefore;
+                System.out.println(atk.name + " have restored: " + manaRestored + " Mana");
             } else {
                 long cdLeft = atk.cooldown - 
                         ((System.currentTimeMillis() - atk.lastUsed) / 1000);
@@ -161,6 +179,11 @@ public class Mage implements CharacterClass {
         //Combustion
         if(key.equals("5")){
             if (atk.canUse()){
+                if (totalMana < atk.manaCost) {
+                    System.out.println("Not enough mana!");
+                    return;
+                }
+                totalMana -= atk.manaCost;
                 atk.use();
                 combustionActive = true;
                 combustionEndTime = System.currentTimeMillis() + 10000; //10 seconds
