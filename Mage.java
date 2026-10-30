@@ -12,6 +12,8 @@ public class Mage implements CharacterClass {
 }
     private int totalDamage = 0;
     private Random rand = new Random();
+    private boolean pyroHaste = false;
+    private long pyroHasteEndTime = 0;
     public int getTotalDamage(){
         return totalDamage;
     }
@@ -59,9 +61,9 @@ public class Mage implements CharacterClass {
         private Map<String, SpecialAttacks> specials = new HashMap<>();
 
         public Mage() {
-        specials.put("1", new SpecialAttacks("Fire Ball",-100, 3, 399, 654, 20, 0));
-        specials.put("2", new SpecialAttacks("",+40, 3, 40, 80, 40, 6));
-        specials.put("3", new SpecialAttacks("",-60, 3, 150, 250, 20,10));
+        specials.put("1", new SpecialAttacks("Fire Ball",-100, 2, 399, 654, 20, 0));
+        specials.put("2", new SpecialAttacks("Fire Blast!",+40, 0, 40, 80, 100, 6));
+        specials.put("3", new SpecialAttacks("Pyro Blast!",-299, 5, 150, 250, 20,0));
         specials.put("4", new SpecialAttacks("",-20, 3, 0, 0, 0, 20));
         specials.put("5", new SpecialAttacks("",+100, 3, 0, 0, 100, 60));
         specials.put("6", new SpecialAttacks("",0, 3, 0, 0, 0 ,120));
@@ -73,7 +75,62 @@ public class Mage implements CharacterClass {
         //NAME HERE
         if(key.equals("1")){
             if (atk.canUse()){
-                if (!showCastBar(atk)) return;
+                if (!showCastBar(atk, atk.castTime)) return;
+                atk.use();
+                int dmg = getRandomDamage(atk.minDamage, atk.maxDamage, atk.critChance);
+                enemy.takeDamage(dmg);
+                totalDamage += dmg;
+                System.out.println(atk.name + " does " + dmg + " damage");
+            } else {
+                long cdLeft = atk.cooldown - 
+                        ((System.currentTimeMillis() - atk.lastUsed) / 1000);
+                               System.out.println(Colors.RED + "[CD] " + atk.name + " is on cooldown " + cdLeft + "s" + Colors.RESET);
+            }   
+            return;
+        }
+        //NAME HERE
+        if(key.equals("2")){
+            if (atk.canUse()){
+                atk.use();
+                pyroHaste = true;
+                pyroHasteEndTime = System.currentTimeMillis() + 10000; //10 seconds
+                int dmg = getRandomDamage(atk.minDamage, atk.maxDamage, atk.critChance);
+                enemy.takeDamage(dmg);
+                totalDamage += dmg;
+                System.out.println(atk.name + " does " + dmg + " damage");
+            } else {
+                long cdLeft = atk.cooldown - 
+                        ((System.currentTimeMillis() - atk.lastUsed) / 1000);
+                               System.out.println(Colors.RED + "[CD] " + atk.name + " is on cooldown " + cdLeft + "s" + Colors.RESET);
+            }   
+            return;
+        }
+        //NAME HERE
+        if(key.equals("3")){
+            if (atk.canUse()){
+                boolean hasPyroHaste = pyroHaste
+                        && System.currentTimeMillis() < pyroHasteEndTime;
+                int castTime = hasPyroHaste ? 1 : atk.castTime;
+                if (!showCastBar(atk, castTime)) return;
+                atk.use();
+                if (hasPyroHaste) {
+                    pyroHaste = false;
+                }
+                int dmg = getRandomDamage(atk.minDamage, atk.maxDamage, atk.critChance);
+                enemy.takeDamage(dmg);
+                totalDamage += dmg;
+                System.out.println(atk.name + " does " + dmg + " damage");
+            } else {
+                long cdLeft = atk.cooldown - 
+                        ((System.currentTimeMillis() - atk.lastUsed) / 1000);
+                               System.out.println(Colors.RED + "[CD] " + atk.name + " is on cooldown " + cdLeft + "s" + Colors.RESET);
+            }   
+            return;
+        }
+        //NAME HERE
+        if(key.equals("4")){
+            if (atk.canUse()){
+                if (!showCastBar(atk, atk.castTime)) return;
                 atk.use();
                 int dmg = getRandomDamage(atk.minDamage, atk.maxDamage, atk.critChance);
                 enemy.takeDamage(dmg);
@@ -88,8 +145,8 @@ public class Mage implements CharacterClass {
         }
 }
 
-    private boolean showCastBar(SpecialAttacks atk) {
-        long castDuration = atk.castTime * 1_000_000_000L;
+    private boolean showCastBar(SpecialAttacks atk, int castTime) {
+        long castDuration = castTime * 1_000_000_000L;
         long startTime = System.nanoTime();
         int barWidth = 20;
 

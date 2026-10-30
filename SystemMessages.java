@@ -9,8 +9,8 @@ public class SystemMessages {
     }
     public void mageStart(){
         System.out.println("\n 1 for Fire Ball! (3 Second Cast Time)" + 
-            "\n 2 WiP" + 
-            "\n 3 WiP" +
+            "\n 2 for Fire Blast! (6 second cooldown, gives reduced cast time on Pyro Blast " + 
+            "\n 3 for Pyro Blast! (5 second cast time, 1 second after casting Fire Blast" +
             "\n 4 WiP" + 
             "\n 5 WiP" + 
             "\n 6 WiP");
