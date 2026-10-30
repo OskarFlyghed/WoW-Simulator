@@ -20,6 +20,13 @@ public class Rogue implements CharacterClass {
     private long trinketEndTime;
     private int attackpower = 250; //trinket attack power
     private int totalDamage = 0;
+    private double energy = 100;
+    private static final int MAX_ENERGY = 100;
+    private long lastEnergyUpdate = System.currentTimeMillis();
+
+    private int comboPoints = 0;
+    private static final int MAX_COMBO_POINTS = 5;
+    private static final double ENERGY_REGEN_PER_SECOND = 10.0;
     public int getTotalDamage(){
         return totalDamage;
     }
@@ -38,16 +45,20 @@ public class Rogue implements CharacterClass {
 
     public static class SpecialAttacks {
         String name;
-        int energy = 100;
+        int energyCost;
+        int comboPointCost;
+        int comboPoiintGenerated;
         int minDamage;
         int maxDamage;
         int critChance;
         int cooldown;
         long lastUsed;
 
-        SpecialAttacks(String name, int energy, int minDamage, int maxDamage, int critChance, int cooldown) {
+        SpecialAttacks(String name, int energyCost, int comboPointCost, int comboPointsGenerated, int minDamage, int maxDamage, int critChance, int cooldown) {
             this.name = name;
-            this.energy = energy;
+            this.energyCost = energyCost;
+            this.comboPointCost = comboPointCost;
+            this.comboPoiintGenerated = comboPointsGenerated;
             this.minDamage = minDamage;
             this.maxDamage = maxDamage;
             this.critChance = critChance;
@@ -67,15 +78,16 @@ public class Rogue implements CharacterClass {
     private Map<String, SpecialAttacks> specials = new HashMap<>();
 
     public Rogue() {
-        specials.put("1", new SpecialAttacks("Saber Slash",-40, 80, 120, 20, 1));
-        specials.put("2", new SpecialAttacks("Throw Knife",+40, 40, 80, 40, 6));
-        specials.put("3", new SpecialAttacks("Evicerate",-60, 150, 250, 20,10));
-        specials.put("4", new SpecialAttacks("Slice and Dice",-20, 0, 0, 0, 20));
-        specials.put("5", new SpecialAttacks("Adrenaline Rush",+100, 0, 0, 100, 60));
-        specials.put("6", new SpecialAttacks("Berzerk",0, 0, 0, 0 ,120));
+        specials.put("1", new SpecialAttacks("Saber Slash",40, 0, 1, 80, 120, 20, 1));
+        specials.put("2", new SpecialAttacks("Throw Knife",0, 0, 2, 40, 80, 40, 6));
+        specials.put("3", new SpecialAttacks("Evicerate",60, 5, 0, 150, 250, 20,10));
+        specials.put("4", new SpecialAttacks("Slice and Dice", 20, 5, 0, 0, 0, 0, 20));
+        specials.put("5", new SpecialAttacks("Adrenaline Rush",+100, 0, 0, 0, 0, 100, 60));
+        specials.put("6", new SpecialAttacks("Berzerk",0 ,0,0, 0, 0, 0 ,120));
     }
     //Autoattack
     public void autoAttack(Monster enemy) {
+        regenerateEnergy();
         long now = System.currentTimeMillis();
         int currentInterval = autoInterval;
         if(hasteOneActive) currentInterval = autoInterval / 2; //SLICE AND DICE *2 speed
@@ -108,13 +120,18 @@ public class Rogue implements CharacterClass {
     public void specialAttack(String key, Monster enemy) {
 
         SpecialAttacks atk = specials.get(key);
+
+        //THROW KNIFE ENERGY REGEN
+        if(key.equals("2")){
+            energy = Math.min(MAX_COMBO_POINTS, energy + 40);
+        }
         //SLICE AND DICE
         if(key.equals("4")){
             if (atk.canUse()){
                 atk.use();
                 hasteOneActive = true;
                 hasteOneEndTime = System.currentTimeMillis() + 10000; //10 seconds
-                System.out.println("Slice and Dice activated!");
+                System.out.println(Colors.YELLOW + "Slice and Dice activated!" + Colors.RESET);
             } else {
                 long cdLeft = atk.cooldown - 
                         ((System.currentTimeMillis() - atk.lastUsed) / 1000);
@@ -128,7 +145,7 @@ public class Rogue implements CharacterClass {
                 atk.use();
                 hasteTwoActive = true;
                 hasteTwoEndTime = System.currentTimeMillis() + 15000; //15 seconds
-                System.out.println("Adrenaline Rush activated!");
+                System.out.println(Colors.YELLOW + "Adrenaline Rush activated!" + Colors.RESET);
             } else{
                 long cdLeft = atk.cooldown -
                         ((System.currentTimeMillis() - atk.lastUsed) / 1000);
@@ -142,7 +159,7 @@ public class Rogue implements CharacterClass {
                 atk.use();
                 trinketActive = true;
                 trinketEndTime = System.currentTimeMillis() + 15000; //15 seconds
-                System.out.println("Berzerk activated!");
+                System.out.println(Colors.YELLOW + "Berzerk activated!" + Colors.RESET);
             } else{
                 long cdLeft = atk.cooldown -
                         ((System.currentTimeMillis() - atk.lastUsed) / 1000);
@@ -154,14 +171,20 @@ public class Rogue implements CharacterClass {
         
         
         
-        if (atk.canUse()) {
-            atk.use();
-            
+        if (tryUse(atk)) {
             int dmg = getRandomDamage(atk.minDamage, atk.maxDamage, atk.critChance);
             int merDamage = dmg + attackpower;
             if(trinketActive) dmg = merDamage;
             enemy.takeDamage(dmg);
             totalDamage += dmg;
+            comboPoints = Math.min(MAX_COMBO_POINTS, comboPoints + atk.comboPoiintGenerated);
+            if(comboPoints < atk.comboPointCost){
+                System.out.println("Not enought combo points!");
+            }
+            if(energy < atk.energyCost){
+                System.out.println("Not enough energy!");
+            }
+            System.out.println("Combo points: " + comboPoints);
             System.out.println(/*"[SPECIAL " + key + "] "*/  atk.name + " does " + dmg + " damage!");
         } else {
             long cdLeft = atk.cooldown -
@@ -171,4 +194,30 @@ public class Rogue implements CharacterClass {
 
         
     }
+    private boolean tryUse(SpecialAttacks atk) {
+    long now = System.currentTimeMillis();
+    long elapsed = now - lastEnergyUpdate;
+
+    energy = Math.min(MAX_ENERGY,
+            energy + elapsed * ENERGY_REGEN_PER_SECOND / 1000.0);
+    lastEnergyUpdate = now;
+
+    if (!atk.canUse()) {
+        long cdLeft = atk.cooldown - (now - atk.lastUsed) / 1000;
+        System.out.println(Colors.RED + atk.name + " is on cooldown "
+                + cdLeft + "s" + Colors.RESET);
+        return false;
+    }
+    energy -= atk.energyCost;
+    comboPoints -= atk.comboPointCost;
+    atk.use();
+    return true;
+}
+private void regenerateEnergy(){
+    long now = System.currentTimeMillis();
+    double elapsedSeconds = (now - lastEnergyUpdate) / 1000.0;
+
+    energy = Math.min(MAX_ENERGY, energy + elapsedSeconds * ENERGY_REGEN_PER_SECOND);
+    lastEnergyUpdate = now;
+}
 }

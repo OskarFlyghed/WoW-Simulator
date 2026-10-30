@@ -14,12 +14,20 @@ public class Mage implements CharacterClass {
     private Random rand = new Random();
     private boolean pyroHaste = false;
     private long pyroHasteEndTime = 0;
+    private boolean combustionActive = false;
+    private long combustionEndTime = 0;
+    private boolean trinketActive = false;
+    private long trinketEndTime = 0;
+    private int spellPower = 300;
     public int getTotalDamage(){
         return totalDamage;
     }
     public int getRandomDamage(int min, int max, int critChance) {
     int dmg = rand.nextInt(max - min + 1) + min; // random mellan min–max
 
+    if (isCombustionActive()) {
+        critChance = 100;
+    }
     boolean crit = rand.nextInt(100) < critChance; // critChance i %
 
     if (crit) {
@@ -62,22 +70,24 @@ public class Mage implements CharacterClass {
 
         public Mage() {
         specials.put("1", new SpecialAttacks("Fire Ball",-100, 2, 399, 654, 20, 0));
-        specials.put("2", new SpecialAttacks("Fire Blast!",+40, 0, 40, 80, 100, 6));
-        specials.put("3", new SpecialAttacks("Pyro Blast!",-299, 5, 150, 250, 20,0));
-        specials.put("4", new SpecialAttacks("",-20, 3, 0, 0, 0, 20));
-        specials.put("5", new SpecialAttacks("",+100, 3, 0, 0, 100, 60));
-        specials.put("6", new SpecialAttacks("",0, 3, 0, 0, 0 ,120));
+        specials.put("2", new SpecialAttacks("Fire Blast!",+40, 0, 137, 159, 100, 6));
+        specials.put("3", new SpecialAttacks("Pyro Blast!",-299, 5, 875, 1139, 20,0));
+        specials.put("4", new SpecialAttacks("Evocation",+100, 3, 0, 0, 0, 20));
+        specials.put("5", new SpecialAttacks("Combustion",+100, 0, 0, 0, 100, 60));
+        specials.put("6", new SpecialAttacks("Mind Quickening Gem",0, 0, 0, 0, 0 ,120));
     }
     public void specialAttack(String key, Monster enemy) {
 
         SpecialAttacks atk = specials.get(key);
         if (atk == null) return;
-        //NAME HERE
+        //Fire Ball
         if(key.equals("1")){
             if (atk.canUse()){
                 if (!showCastBar(atk, atk.castTime)) return;
                 atk.use();
                 int dmg = getRandomDamage(atk.minDamage, atk.maxDamage, atk.critChance);
+                int merDamage = dmg + spellPower;
+                if(trinketActive) dmg = merDamage;
                 enemy.takeDamage(dmg);
                 totalDamage += dmg;
                 System.out.println(atk.name + " does " + dmg + " damage");
@@ -88,13 +98,15 @@ public class Mage implements CharacterClass {
             }   
             return;
         }
-        //NAME HERE
+        //Fire Blast
         if(key.equals("2")){
             if (atk.canUse()){
                 atk.use();
                 pyroHaste = true;
                 pyroHasteEndTime = System.currentTimeMillis() + 10000; //10 seconds
                 int dmg = getRandomDamage(atk.minDamage, atk.maxDamage, atk.critChance);
+                int merDamage = dmg + spellPower;
+                if(trinketActive) dmg = merDamage;
                 enemy.takeDamage(dmg);
                 totalDamage += dmg;
                 System.out.println(atk.name + " does " + dmg + " damage");
@@ -105,18 +117,20 @@ public class Mage implements CharacterClass {
             }   
             return;
         }
-        //NAME HERE
+        //Pyro Blast
         if(key.equals("3")){
             if (atk.canUse()){
                 boolean hasPyroHaste = pyroHaste
                         && System.currentTimeMillis() < pyroHasteEndTime;
-                int castTime = hasPyroHaste ? 1 : atk.castTime;
+                int castTime = hasPyroHaste ? 1 : atk.castTime; //Cast time with Pyro haste
                 if (!showCastBar(atk, castTime)) return;
                 atk.use();
                 if (hasPyroHaste) {
                     pyroHaste = false;
                 }
                 int dmg = getRandomDamage(atk.minDamage, atk.maxDamage, atk.critChance);
+                int merDamage = dmg + spellPower;
+                if(trinketActive) dmg = merDamage;
                 enemy.takeDamage(dmg);
                 totalDamage += dmg;
                 System.out.println(atk.name + " does " + dmg + " damage");
@@ -127,15 +141,44 @@ public class Mage implements CharacterClass {
             }   
             return;
         }
-        //NAME HERE
+        //EVOCATION
         if(key.equals("4")){
             if (atk.canUse()){
                 if (!showCastBar(atk, atk.castTime)) return;
                 atk.use();
+                
                 int dmg = getRandomDamage(atk.minDamage, atk.maxDamage, atk.critChance);
                 enemy.takeDamage(dmg);
                 totalDamage += dmg;
                 System.out.println(atk.name + " does " + dmg + " damage");
+            } else {
+                long cdLeft = atk.cooldown - 
+                        ((System.currentTimeMillis() - atk.lastUsed) / 1000);
+                               System.out.println(Colors.RED + "[CD] " + atk.name + " is on cooldown " + cdLeft + "s" + Colors.RESET);
+            }   
+            return;
+        }
+        //Combustion
+        if(key.equals("5")){
+            if (atk.canUse()){
+                atk.use();
+                combustionActive = true;
+                combustionEndTime = System.currentTimeMillis() + 10000; //10 seconds
+                System.out.println(Colors.YELLOW + "Combustion activated!" + Colors.RESET);
+            } else {
+                long cdLeft = atk.cooldown - 
+                        ((System.currentTimeMillis() - atk.lastUsed) / 1000);
+                               System.out.println(Colors.RED + "[CD] " + atk.name + " is on cooldown " + cdLeft + "s" + Colors.RESET);
+            }   
+            return;
+        }
+        //TRINKET
+        if(key.equals("6")){
+            if (atk.canUse()){
+                atk.use();
+                trinketActive = true;
+                trinketEndTime = System.currentTimeMillis() + 15000; // 15 seconds
+                System.out.println(Colors.YELLOW + "Mind Quickening Gem activated!" + Colors.RESET);
             } else {
                 long cdLeft = atk.cooldown - 
                         ((System.currentTimeMillis() - atk.lastUsed) / 1000);
@@ -146,6 +189,9 @@ public class Mage implements CharacterClass {
 }
 
     private boolean showCastBar(SpecialAttacks atk, int castTime) {
+        if (isCombustionActive() && castTime > 0) {
+            castTime = Math.max(1, castTime / 2);
+        }
         long castDuration = castTime * 1_000_000_000L;
         long startTime = System.nanoTime();
         int barWidth = 20;
@@ -177,5 +223,31 @@ public class Mage implements CharacterClass {
                 return false;
             }
         }
+    }
+
+    
+    
+    public void updateBuffs() {
+        long now = System.currentTimeMillis();
+
+        isCombustionActive();
+
+        if (trinketActive && now >= trinketEndTime) {
+            trinketActive = false;
+            System.out.println(Colors.YELLOW
+                    + "Mind Quickening Gem has worn off!" + Colors.RESET);
+        }
+        if (pyroHaste && now >= pyroHasteEndTime) {
+            pyroHaste = false;
+            System.out.println(Colors.YELLOW + "Pyro Haste has worn off!" + Colors.RESET);
+        }
+    }
+
+    private boolean isCombustionActive() {
+        if (combustionActive && System.currentTimeMillis() >= combustionEndTime) {
+            combustionActive = false;
+            System.out.println(Colors.YELLOW + "Combustion has worn off!" + Colors.RESET);
+        }
+        return combustionActive;
     }
 }

@@ -45,6 +45,9 @@ public class Main {
             if (attacks instanceof Rogue) {
                 ((Rogue) attacks).autoAttack(boss);
             }
+            if(attacks instanceof Mage){
+                ((Mage) attacks).updateBuffs();
+            }
 
             int keyCode = knapp.getKeyCode();
             if (keyCode != -1 && keyCode != KeyEvent.VK_ENTER) {
