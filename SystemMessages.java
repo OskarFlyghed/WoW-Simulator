@@ -7,4 +7,12 @@ public class SystemMessages {
             "\n 5 for Adrenaline Rush! (60 second cooldown)" + 
             "\n 6 for Berzerk (120 second cooldown");
     }
+    public void mageStart(){
+        System.out.println("\n 1 for Fire Ball! (3 Second Cast Time)" + 
+            "\n 2 WiP" + 
+            "\n 3 WiP" +
+            "\n 4 WiP" + 
+            "\n 5 WiP" + 
+            "\n 6 WiP");
+    }
 }

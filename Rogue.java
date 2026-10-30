@@ -1,7 +1,7 @@
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
-public class Rogue {
+public class Rogue implements CharacterClass {
     public class Colors {
     public static final String RESET = "\u001B[0m";
     public static final String RED = "\u001B[31m";

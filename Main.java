@@ -6,14 +6,36 @@ public class Main {
     
 
     public static void main(String[] args) throws InterruptedException, IOException {
-        Monster boss = new Monster("Onyxia", 500000, 0);
+        Monster boss = new Monster("Onyxia", 500000, 0); 
         Monster player = new Monster("Player", 2391, 0);
-        SystemMessages startGame = new SystemMessages();
-        Rogue attacks = new Rogue();
-        KeyInputExample knapp = new KeyInputExample();
+        SystemMessages startGame = new SystemMessages(); //Messages in SystemMessages Class
+        KeyInputExample knapp = new KeyInputExample(); //Calls KeyInput class
         Scanner scanner = new Scanner(System.in);
         System.out.println("=======Welcome to the simulator!=======");
-        startGame.rogueStart();
+        System.out.println("What class would you like to try?");
+        System.out.println("\n1. Rogue" + 
+            "\n2. Mage (work in progress)" );
+        String choice;
+        do {
+            System.out.println("Choose 1 or 2:");
+            choice = scanner.nextLine().trim();
+        } while (!choice.equals("1") && !choice.equals("2"));
+
+        CharacterClass attacks;
+        switch (choice) {
+            case"1":
+            startGame.rogueStart();
+            attacks = new Rogue();
+            break;
+            case"2":
+            startGame.mageStart();
+            attacks = new Mage();
+            break;
+            default:
+                throw new IllegalStateException("Unexpected class choice!");
+        }
+            
+        
        /*  System.out.println("Welcome to the simulator!" + 
             "\n 1 for Saber slash! (1 second cooldown)" + 
             "\n 2 for Throw knife! (6 second cooldown)" + 
@@ -30,8 +52,9 @@ public class Main {
         System.out.println("GO!");
         long startTimer = System.currentTimeMillis();
         while (!boss.isDead() && !player.isDead()) {
-            // Auto Attack
-            attacks.autoAttack(boss);
+            if (attacks instanceof Rogue) {
+                ((Rogue) attacks).autoAttack(boss);
+            }
 
             int keyCode = knapp.getKeyCode();
             if (keyCode != -1 && keyCode != KeyEvent.VK_ENTER) {
