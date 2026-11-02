@@ -71,9 +71,9 @@ public class Mage implements CharacterClass {
         private Map<String, SpecialAttacks> specials = new HashMap<>();
 
         public Mage() {
-        specials.put("1", new SpecialAttacks("Fire Ball",139, 2, 399, 654, 20, 0));
+        specials.put("1", new SpecialAttacks("Fire Ball",139, 2, 399, 654, 45, 0));
         specials.put("2", new SpecialAttacks("Fire Blast!",50, 0, 137, 159, 100, 6));
-        specials.put("3", new SpecialAttacks("Pyro Blast!",399, 4, 875, 1139, 20,0));
+        specials.put("3", new SpecialAttacks("Pyro Blast!",399, 4, 875, 1139, 55,0));
         specials.put("4", new SpecialAttacks("Evocation",+0, 3, 0, 0, 0, 20));
         specials.put("5", new SpecialAttacks("Combustion",100, 0, 0, 0, 100, 60));
         specials.put("6", new SpecialAttacks("Mind Quickening Gem",0, 0, 0, 0, 0 ,120));

@@ -6,7 +6,7 @@ public class Main {
     
 
     public static void main(String[] args) throws InterruptedException, IOException {
-        Monster boss = new Monster("Onyxia", 500000, 0); 
+        Monster boss = new Monster("Onyxia", 20000, 0); 
         Monster player = new Monster("Player", 2391, 0);
         SystemMessages startGame = new SystemMessages(); //Messages in SystemMessages Class
         KeyInputExample knapp = new KeyInputExample(); //Calls KeyInput class

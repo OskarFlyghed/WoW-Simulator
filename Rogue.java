@@ -18,7 +18,7 @@ public class Rogue implements CharacterClass {
     private long hasteTwoEndTime = 0;
     private boolean trinketActive = false;
     private long trinketEndTime;
-    private int attackpower = 250; //trinket attack power
+    private int attackpower = 150; //trinket attack power
     private int totalDamage = 0;
     private double energy = 100;
     public static final int MIN_ENERGY = 0;
@@ -79,11 +79,11 @@ public class Rogue implements CharacterClass {
     private Map<String, SpecialAttacks> specials = new HashMap<>();
 
     public Rogue() {
-        specials.put("1", new SpecialAttacks("Saber Slash",40, 0, 1, 80, 120, 20, 1));
-        specials.put("2", new SpecialAttacks("Throw Knife",0, 0, 2, 40, 80, 40, 6));
-        specials.put("3", new SpecialAttacks("Evicerate",60, 5, 0, 150, 250, 20,10));
+        specials.put("1", new SpecialAttacks("Saber Slash",40, 0, 1, 80, 120, 15, 1));
+        specials.put("2", new SpecialAttacks("Throw Knife",0, 0, 2, 40, 80, 25, 6));
+        specials.put("3", new SpecialAttacks("Evicerate",60, 5, 0, 150, 250, 20,0));
         specials.put("4", new SpecialAttacks("Slice and Dice", 20, 5, 0, 0, 0, 0, 20));
-        specials.put("5", new SpecialAttacks("Adrenaline Rush",+100, 0, 0, 0, 0, 100, 60));
+        specials.put("5", new SpecialAttacks("Adrenaline Rush",0, 0, 0, 0, 0, 100, 60));
         specials.put("6", new SpecialAttacks("Berzerk",0 ,0,0, 0, 0, 0 ,120));
     }
     //Autoattack
@@ -95,7 +95,7 @@ public class Rogue implements CharacterClass {
         if(hasteTwoActive) currentInterval = autoInterval / 3; //ADRENALINE RUSH *3 speed
         if (hasteOneActive && hasteTwoActive) currentInterval = autoInterval / 2 / 3; //Both // *5 speed
         if (now - lastAutoAttack >= currentInterval) {
-            int dmg = getRandomDamage(48, 103, 15); //min, max , crit chance
+            int dmg = getRandomDamage(49, 77, 15); //min, max , crit chance
             int merDamage = dmg + attackpower;
             if(trinketActive) dmg = merDamage;
             enemy.takeDamage(dmg);
