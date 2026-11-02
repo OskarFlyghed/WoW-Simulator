@@ -21,6 +21,7 @@ public class Rogue implements CharacterClass {
     private int attackpower = 250; //trinket attack power
     private int totalDamage = 0;
     private double energy = 100;
+    public static final int MIN_ENERGY = 0;
     private static final int MAX_ENERGY = 100;
     private long lastEnergyUpdate = System.currentTimeMillis();
 
@@ -120,22 +121,18 @@ public class Rogue implements CharacterClass {
     public void specialAttack(String key, Monster enemy) {
 
         SpecialAttacks atk = specials.get(key);
+        if (atk == null) return;
 
         //THROW KNIFE ENERGY REGEN
         if(key.equals("2")){
-            energy = Math.min(MAX_COMBO_POINTS, energy + 40);
+            energy = Math.min(MAX_ENERGY, energy + 40);
         }
         //SLICE AND DICE
         if(key.equals("4")){
-            if (atk.canUse()){
-                atk.use();
+            if (tryUse(atk)){
                 hasteOneActive = true;
                 hasteOneEndTime = System.currentTimeMillis() + 10000; //10 seconds
                 System.out.println(Colors.YELLOW + "Slice and Dice activated!" + Colors.RESET);
-            } else {
-                long cdLeft = atk.cooldown - 
-                        ((System.currentTimeMillis() - atk.lastUsed) / 1000);
-                               System.out.println(Colors.RED + "[CD] " + atk.name + " is on cooldown " + cdLeft + "s" + Colors.RESET);
             }   
             return;
         }
@@ -167,10 +164,6 @@ public class Rogue implements CharacterClass {
             }
             return;
         }
-        if (atk == null) return;
-        
-        
-        
         if (tryUse(atk)) {
             int dmg = getRandomDamage(atk.minDamage, atk.maxDamage, atk.critChance);
             int merDamage = dmg + attackpower;
@@ -178,13 +171,8 @@ public class Rogue implements CharacterClass {
             enemy.takeDamage(dmg);
             totalDamage += dmg;
             comboPoints = Math.min(MAX_COMBO_POINTS, comboPoints + atk.comboPoiintGenerated);
-            if(comboPoints < atk.comboPointCost){
-                System.out.println("Not enought combo points!");
-            }
-            if(energy < atk.energyCost){
-                System.out.println("Not enough energy!");
-            }
             System.out.println("Combo points: " + comboPoints);
+            System.out.println("Current Energy: " + (int)energy);
             System.out.println(/*"[SPECIAL " + key + "] "*/  atk.name + " does " + dmg + " damage!");
         } else {
             long cdLeft = atk.cooldown -
@@ -206,6 +194,14 @@ public class Rogue implements CharacterClass {
         long cdLeft = atk.cooldown - (now - atk.lastUsed) / 1000;
         System.out.println(Colors.RED + atk.name + " is on cooldown "
                 + cdLeft + "s" + Colors.RESET);
+        return false;
+    }
+    if (energy < atk.energyCost) {
+        System.out.println("Not enough energy!");
+        return false;
+    }
+    if (comboPoints < atk.comboPointCost) {
+        System.out.println("Not enough combo points!");
         return false;
     }
     energy -= atk.energyCost;

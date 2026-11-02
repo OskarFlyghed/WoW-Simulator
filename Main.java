@@ -14,7 +14,7 @@ public class Main {
         System.out.println("=======Welcome to the simulator!=======");
         System.out.println("What class would you like to try?");
         System.out.println("\n1. Rogue" + 
-            "\n2. Mage (work in progress)" );
+            "\n2. Mage" );
         String choice;
         do {
             System.out.println("Choose 1 or 2:");
