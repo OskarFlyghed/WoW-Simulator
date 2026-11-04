@@ -12,7 +12,7 @@ public class SystemMessages {
             "\n 2 for Fire Blast! (6 second cooldown, gives reduced cast time on Pyro Blast " + 
             "\n 3 for Pyro Blast! (5 second cast time, 1 second after casting Fire Blast" +
             "\n 4 for Combustion! (60 second cooldown, Increase cast time and crit chance to 100%)" + 
-            "\n 5 for Evocation! (20 second cooldown, restores 100% of the caster)" + 
+            "\n 5 for Evocation! (20 second cooldown, restores 100% of the casters mana)" + 
             "\n 6 for Mind Quickening Gem! (120 second cooldown, 300 extra spellpower");
     }
 }

@@ -35,7 +35,7 @@ public class Main {
                 throw new IllegalStateException("Unexpected class choice!");
         }
         System.out.println("Boss pull timer! 10 seconds");
-        for (int i = 2; i >= 1; i--) { // Ändra till 10 sekunder!
+        for (int i = 10; i >= 1; i--) { // Ändra till 10 sekunder!
             System.out.println(i);
             Thread.sleep(1000);
         }
